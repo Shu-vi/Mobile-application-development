@@ -18,11 +18,33 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            LoginPage();
+            Account();
         }
     }
 }
 
+
+@Composable
+fun Account() {
+    var tabPage by remember {
+        mutableStateOf(TabPage.Authorization)
+    }
+    Scaffold(topBar = {
+        TabHome(
+            selectedTabIndex = tabPage.ordinal,
+            onSelectedTab = { tabPage = it })
+    },
+        content = { padding ->
+            Column(modifier = Modifier.padding(padding)) {
+                if (tabPage.name == "Authorization") {
+                    LoginPage();
+                } else {
+                    RegistrationPage();
+                }
+            }
+        }
+    )
+}
 
 @Preview(showBackground = true)
 @Composable
@@ -70,12 +92,64 @@ fun LoginPage() {
             ) {
                 Text("Войти")
             }
-            Spacer(modifier = Modifier.height(5.dp))
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RegistrationPage() {
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var repeatPassword by remember { mutableStateOf("") }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Person,
+                contentDescription = "Registration icon",
+                tint = MaterialTheme.colors.primary,
+                modifier = Modifier.size(64.dp)
+            )
+            Text(
+                text = "Регистрация",
+                style = MaterialTheme.typography.h6
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            TextField(
+                value = username,
+                onValueChange = { username = it },
+                label = { Text("Имя пользователя") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            TextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Пароль") },
+                modifier = Modifier.fillMaxWidth(),
+                visualTransformation = PasswordVisualTransformation()
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            TextField(
+                value = repeatPassword,
+                onValueChange = { repeatPassword = it },
+                label = { Text("Повторите пароль") },
+                modifier = Modifier.fillMaxWidth(),
+                visualTransformation = PasswordVisualTransformation()
+            )
+            Spacer(modifier = Modifier.height(20.dp))
             Button(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {}
             ) {
-                Text("Регистрация")
+                Text("Зарегистрироваться")
             }
         }
     }
