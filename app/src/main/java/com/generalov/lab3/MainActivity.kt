@@ -13,6 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.rememberPagerState
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,22 +28,27 @@ class MainActivity : ComponentActivity() {
 }
 
 
+@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun Account() {
-    var tabPage by remember {
-        mutableStateOf(TabPage.Authorization)
-    }
+    val pagerState = rememberPagerState(pageCount = TabPage.values().size)
+    val scope = rememberCoroutineScope()
     Scaffold(topBar = {
         TabHome(
-            selectedTabIndex = tabPage.ordinal,
-            onSelectedTab = { tabPage = it })
+            selectedTabIndex = pagerState.currentPage,
+            onSelectedTab = { scope.launch { pagerState.animateScrollToPage(it.ordinal) } })
     },
         content = { padding ->
-            Column(modifier = Modifier.padding(padding)) {
-                if (tabPage.name == "Authorization") {
-                    LoginPage();
-                } else {
-                    RegistrationPage();
+            HorizontalPager(state = pagerState) { index ->
+                Column(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                ) {
+                    when(index){
+                        0 -> LoginPage()
+                        1 -> RegistrationPage()
+                    }
                 }
             }
         }
