@@ -5,8 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 enum class TabPage() {
-    Authorization(),
-    Registration()
+    Authorization,
+    Registration
 }
 
 @Composable

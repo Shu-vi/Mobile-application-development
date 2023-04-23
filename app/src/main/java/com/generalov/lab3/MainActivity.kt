@@ -27,17 +27,21 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
+//TODO сделать БД, регистрацию, авторизацию, после авторизации переход на новую страницу и выводить hello, user(+ кнопку выхода)
+//TODO всю инфу о юзерах по телефону. Create user, add user.
+//TODO имя, пароль может менять. Телефон - нет
 @OptIn(ExperimentalPagerApi::class)
 @Composable
+@Preview(showBackground = true)
 fun Account() {
     val pagerState = rememberPagerState(pageCount = TabPage.values().size)
     val scope = rememberCoroutineScope()
-    Scaffold(topBar = {
-        TabHome(
-            selectedTabIndex = pagerState.currentPage,
-            onSelectedTab = { scope.launch { pagerState.animateScrollToPage(it.ordinal) } })
-    },
+    Scaffold(
+        topBar = {
+            TabHome(
+                selectedTabIndex = pagerState.currentPage,
+                onSelectedTab = { scope.launch { pagerState.animateScrollToPage(it.ordinal) } })
+        },
         content = { padding ->
             HorizontalPager(state = pagerState) { index ->
                 Column(
@@ -45,7 +49,7 @@ fun Account() {
                         .fillMaxSize()
                         .padding(padding)
                 ) {
-                    when(index){
+                    when (index) {
                         0 -> LoginPage()
                         1 -> RegistrationPage()
                     }
