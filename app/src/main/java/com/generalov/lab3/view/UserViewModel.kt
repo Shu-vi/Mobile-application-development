@@ -11,7 +11,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 
-class MainViewModel(application: Application) : AndroidViewModel(application) {
+class UserViewModel(application: Application) : AndroidViewModel(application){
     private val compositeDisposable = CompositeDisposable()
 
     private val _user = MutableLiveData<List<User>>()
