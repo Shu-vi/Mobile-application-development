@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace 'com.generalov.lab3'
+    namespace 'com.generalov.lab4'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.generalov.lab3"
+        applicationId "com.generalov.lab4"
         minSdk 24
         targetSdk 33
         versionCode 1
