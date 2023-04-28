@@ -1,10 +1,10 @@
-package com.generalov.lab3
+package com.generalov.lab3.screen.account
 
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-enum class TabPage() {
+enum class TabPage {
     Authorization,
     Registration
 }
