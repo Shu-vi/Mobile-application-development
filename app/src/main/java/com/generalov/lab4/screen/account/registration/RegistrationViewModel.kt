@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.generalov.lab4.database.AppDatabase
 import com.generalov.lab4.database.entity.User
 import com.generalov.lab4.database.repo.UserRepository
+import com.generalov.lab4.types.InputResult
+import com.generalov.lab4.usecases.Validator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,27 +25,39 @@ class RegistrationViewModel(application: Application) : AndroidViewModel(applica
     }
 
     fun register(username: String, phoneNumber: String, password: String, confirmPassword: String) {
-        when {
-            username.isEmpty() -> {
-                _registrationState.value = RegistrationState.UsernameEmpty
-            }
-            phoneNumber.isEmpty() -> {
-                _registrationState.value = RegistrationState.PhoneNumberEmpty
-            }
-            password.isEmpty() -> {
-                _registrationState.value = RegistrationState.PasswordEmpty
-            }
-            password != confirmPassword -> {
-                _registrationState.value = RegistrationState.PasswordsDoNotMatch
-            }
-            phoneNumber.length < 12 -> {
-                _registrationState.value = RegistrationState.PhoneNumberShort
-            }
-            else -> {
-                val user = User(null, username, password, phoneNumber)
-                insert(user)
-                _registrationState.value = RegistrationState.RegistrationSuccess
-            }
+        val usernameValidated = Validator.usernameValidate(username)
+        val phoneValidated = Validator.phoneValidate(phoneNumber)
+        val passwordValidated = Validator.passwordValidate(password, confirmPassword)
+
+        when (usernameValidated) {
+            InputResult.FieldLong -> _registrationState.value = RegistrationState.UsernameLong
+            InputResult.FieldShort -> _registrationState.value = RegistrationState.UsernameShort
+            else -> {}
+        }
+
+        when (phoneValidated) {
+            InputResult.FieldShort -> _registrationState.value = RegistrationState.PhoneNumberShort
+            InputResult.FieldIncorrect -> _registrationState.value =
+                RegistrationState.PhoneNumberIncorrect
+            else -> {}
+        }
+
+        when (passwordValidated) {
+            InputResult.FieldShort -> _registrationState.value = RegistrationState.PasswordShort
+            InputResult.FieldLong -> _registrationState.value = RegistrationState.PasswordLong
+            InputResult.FieldDoNotMatch -> _registrationState.value =
+                RegistrationState.PasswordsDoNotMatch
+            InputResult.FieldEmpty -> _registrationState.value = RegistrationState.PasswordEmpty
+            else -> {}
+        }
+
+        if (passwordValidated == InputResult.Success &&
+            phoneValidated == InputResult.Success &&
+            usernameValidated == InputResult.Success
+        ) {
+            val user = User(null, username, password, phoneNumber)
+            insert(user)
+            _registrationState.value = RegistrationState.RegistrationSuccess
         }
     }
 
@@ -54,10 +68,14 @@ class RegistrationViewModel(application: Application) : AndroidViewModel(applica
 
 enum class RegistrationState {
     UsernameEmpty,
-    PhoneNumberEmpty,
+    UsernameShort,
+    UsernameLong,
     PhoneNumberShort,
+    PhoneNumberIncorrect,
     PasswordEmpty,
     PasswordsDoNotMatch,
+    PasswordShort,
+    PasswordLong,
     RegistrationSuccess,
     Initial
 }

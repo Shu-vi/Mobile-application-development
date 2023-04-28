@@ -8,6 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun RegistrationPage() {
@@ -21,14 +23,35 @@ fun RegistrationPage() {
     var resultInfo by remember { mutableStateOf("") }
     val viewModel: RegistrationViewModel = viewModel()
     val registrationState by viewModel.registrationState.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
 
     when (registrationState) {
         RegistrationState.UsernameEmpty -> usernameError = "Поле не может быть пустым"
-        RegistrationState.PhoneNumberEmpty -> phoneError = "Поле не может быть пустым"
+        RegistrationState.UsernameShort -> usernameError =
+            "Имя пользователя слишком короткое(не менее 3 символов)"
+        RegistrationState.UsernameLong -> usernameError =
+            "Имя пользователя не может быть таким длинным(не более 20 символов)"
         RegistrationState.PasswordEmpty -> passwordError = "Поле не может быть пустым"
         RegistrationState.PasswordsDoNotMatch -> passwordError = "Пароли не совпадают"
-        RegistrationState.RegistrationSuccess -> resultInfo = "Регистрация прошла успешно"
+        RegistrationState.PasswordShort -> passwordError =
+            "Пароль слишком короткий(не менее 5 символов)"
+        RegistrationState.PasswordLong -> passwordError =
+            "Пароль слишком длинный(не более 16 символов)"
         RegistrationState.PhoneNumberShort -> phoneError = "Телефон слишком короткий"
+        RegistrationState.PhoneNumberIncorrect -> phoneError = "Разрешены только цифры"
+        RegistrationState.RegistrationSuccess -> {
+            resultInfo = "Регистрация прошла успешно"
+            username = ""
+            password = ""
+            repeatPassword = ""
+            phone = ""
+            LaunchedEffect(Unit) {
+                delay(3000)
+                coroutineScope.launch {
+                    resultInfo = ""
+                }
+            }
+        }
         else -> {}
     }
 
@@ -100,10 +123,6 @@ fun RegistrationPage() {
             Button(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    usernameError = ""
-                    phoneError = ""
-                    passwordError = ""
-                    resultInfo = ""
                     viewModel.register(
                         username = username,
                         phoneNumber = phone,
