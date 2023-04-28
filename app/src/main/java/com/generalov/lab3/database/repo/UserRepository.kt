@@ -3,24 +3,21 @@ package com.generalov.lab3.database.repo
 
 import com.generalov.lab3.database.entity.User
 import com.generalov.lab3.database.entity.UserDao
-import io.reactivex.rxjava3.core.Completable
-import io.reactivex.rxjava3.core.Observable
 
 class UserRepository(private val userDao: UserDao) {
-
-    fun getUser(phone: String): Observable<List<User>> {
+    suspend fun getUserByPhone(phone: String): User? {
         return userDao.getUserByPhone(phone)
     }
 
-    fun insertUser(user: User): Completable {
-        return userDao.insertUser(user)
+    suspend fun getUserById(id: Int): User? {
+        return userDao.getUserById(id)
     }
 
-    fun updateUser(user: User): Completable {
-        return userDao.updateUser(user)
+    suspend fun insert(user: User) {
+        userDao.insertUser(user)
     }
 
-    fun deleteUser(user: User): Completable {
-        return userDao.deleteUser(user)
+    suspend fun update(user: User) {
+        userDao.updateUser(user)
     }
 }

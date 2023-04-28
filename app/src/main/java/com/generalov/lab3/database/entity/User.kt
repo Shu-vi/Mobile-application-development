@@ -1,29 +1,27 @@
 package com.generalov.lab3.database.entity
 
 import androidx.room.*
-import io.reactivex.rxjava3.core.Completable
-import io.reactivex.rxjava3.core.Observable
 
 @Entity(tableName = "users", indices = [Index(value = ["phone"], unique = true)])
 data class User(
+    @ColumnInfo(name = "id") @PrimaryKey(autoGenerate = true) val id: Int?,
     @ColumnInfo(name = "username") var username: String,
     @ColumnInfo(name = "password") var password: String,
-    @ColumnInfo(name = "phone") val phone: String,
-    @ColumnInfo(name = "id") @PrimaryKey(autoGenerate = true) val id: Int?
-) : java.io.Serializable
+    @ColumnInfo(name = "phone") var phone: String
+)
 
 
 @Dao
 interface UserDao {
-    @Query("SELECT * FROM users WHERE phone = :phone")
-    fun getUserByPhone(phone: String): Observable<List<User>>
+    @Query(value = "SELECT * FROM users WHERE phone = :phone LIMIT 1")
+    suspend fun getUserByPhone(phone: String): User?
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
-    fun insertUser(user: User): Completable
+    @Query(value = "SELECT * FROM users WHERE id = :id LIMIT 1")
+    suspend fun getUserById(id: Int): User?
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertUser(user: User)
 
     @Update
-    fun updateUser(user: User): Completable
-
-    @Delete
-    fun deleteUser(user: User): Completable
+    suspend fun updateUser(user: User)
 }
