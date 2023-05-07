@@ -8,6 +8,7 @@ import com.generalov.lab4.database.entity.User
 import com.generalov.lab4.database.repo.UserRepository
 import com.generalov.lab4.datastore.PreferencesManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -23,6 +24,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         preferencesManager = PreferencesManager(application)
         val userId: Int = preferencesManager.getUserId()
         viewModelScope.launch(Dispatchers.IO) {
+            delay(1000)
             val user = repository.getUserById(id = userId)
             _user.value = user
         }

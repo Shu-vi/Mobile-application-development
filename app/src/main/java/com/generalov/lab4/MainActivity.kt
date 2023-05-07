@@ -31,6 +31,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
     private fun startDestination(viewModel: MainActivityViewModel): String {
         val id: Int = viewModel.getUserId()
         return if (id > 0) {

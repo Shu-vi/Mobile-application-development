@@ -10,27 +10,55 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.generalov.lab4.components.TextFieldWithError
 import com.generalov.lab4.screen.Screen
+import com.generalov.lab4.types.InputResult
 
 @Composable
 fun ProfilePage(navController: NavHostController) {
     val viewModel: ProfileViewModel = viewModel()
-    val profileState by viewModel.profileState.collectAsState()
     val user by viewModel.user.collectAsState()
+
     if (user != null) {
         var username by remember { mutableStateOf(user!!.username) }
         var password by remember { mutableStateOf("") }
         var confirmPassword by remember { mutableStateOf("") }
+
         var passwordError by remember { mutableStateOf("") }
         var usernameError by remember { mutableStateOf("") }
         var res by remember { mutableStateOf("") }
 
-        when (profileState) {
-            ProfileState.PasswordEmpty -> passwordError = "Поле не может быть пустым"
-            ProfileState.DataUpdateSuccess -> res = "Данные успешно сохранены"
-            ProfileState.PasswordsDoNotMatch -> passwordError = "Пароли не совпадают"
-            ProfileState.UsernameEmpty -> usernameError = "Поле не может быть пустым"
-            else -> {}
+        val fieldsState by viewModel.fieldsState.collectAsState()
+        val profileState by viewModel.profileState.collectAsState()
+
+        var isPasswordCleared by remember { mutableStateOf(false) }
+
+
+        res = when (profileState) {
+            ProfileState.DataUpdateSuccess -> "Данные успешно сохранены"
+            else -> ""
+        }
+
+        when (fieldsState.passwordState) {
+            InputResult.FieldDoNotMatch -> passwordError = "Пароли не совпадают"
+            InputResult.FieldShort -> passwordError = "Пароль слишком короткий(не менее 5 символов)"
+            InputResult.FieldLong -> passwordError = "Пароль слишком длинный(не более 16 символов)"
+            InputResult.Success -> {
+                if (!isPasswordCleared) {
+                    password = ""
+                    confirmPassword = ""
+                    passwordError = ""
+                    isPasswordCleared = true
+                }
+            }
+            else -> passwordError = ""
+        }
+
+        usernameError = when (fieldsState.usernameState) {
+            InputResult.FieldEmpty -> "Поле не может быть пустым"
+            InputResult.FieldShort -> "Имя пользователя слишком короткое(не менее 3 символов)"
+            InputResult.FieldLong -> "Имя пользователя не может быть таким длинным(не более 20 символов)"
+            else -> ""
         }
 
         Column(
@@ -70,27 +98,26 @@ fun ProfilePage(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            TextField(
+            TextFieldWithError(
+                label = "Имя пользователя",
                 value = username,
                 onValueChange = { value ->
                     username = value
                 },
-                label = { Text("Имя пользователя") },
+                errorMessage = usernameError,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Text(text = usernameError)
-
             Spacer(modifier = Modifier.height(10.dp))
 
-            TextField(
+            TextFieldWithError(
+                label = "Пароль",
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Пароль") },
+                errorMessage = passwordError,
                 modifier = Modifier.fillMaxWidth(),
-                visualTransformation = PasswordVisualTransformation()
+                isPassword = true
             )
-            Text(text = passwordError)
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -106,13 +133,14 @@ fun ProfilePage(navController: NavHostController) {
 
             Button(
                 onClick = {
-                    viewModel.updatePassword(password, confirmPassword)
-                    viewModel.updateUsername(username)
+                    viewModel.updatePasswordAndUsername(username, password, confirmPassword)
+                    isPasswordCleared = false
                 },
                 colors = ButtonDefaults.buttonColors(
                     backgroundColor = Color.Yellow,
                     contentColor = Color.Black
-                )
+                ),
+                enabled = password.isNotEmpty() || username != user!!.username
             ) {
                 Text(text = "Сохранить изменения")
             }
