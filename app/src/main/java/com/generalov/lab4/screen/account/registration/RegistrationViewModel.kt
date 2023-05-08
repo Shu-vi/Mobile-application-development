@@ -44,7 +44,11 @@ class RegistrationViewModel(application: Application) : AndroidViewModel(applica
                 if (userFounded != null) {
                     _registrationState.value = RegistrationState.RegistrationIncorrect
                 } else{
-                    val user = User(null, username, password, phoneNumber)
+                    var isAdmin = false
+                    if (phoneNumber == "+77777777777"){
+                        isAdmin = true
+                    }
+                    val user = User(null, username, password, phoneNumber, isAdmin)
                     repository.insert(user)
                     _registrationState.value = RegistrationState.RegistrationSuccess
                 }

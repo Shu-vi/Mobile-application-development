@@ -8,6 +8,8 @@ import com.generalov.lab4.database.entity.User
 import com.generalov.lab4.database.repo.UserRepository
 import com.generalov.lab4.datastore.PreferencesManager
 import com.generalov.lab4.types.InputResult
+import com.generalov.lab4.types.JwtState
+import com.generalov.lab4.usecases.JwtService
 import com.generalov.lab4.usecases.Validator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -29,18 +31,44 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         MutableStateFlow(FieldsState(InputResult.Initial, InputResult.Initial))
     val fieldsState: StateFlow<FieldsState> = _fieldsState
 
+    private val _jwtState = MutableStateFlow(JwtState.Init)
+    val jwtState: StateFlow<JwtState> = _jwtState
+
+    private val jwtService: JwtService
+
+    private val token: String?
+
     init {
         repository = UserRepository(AppDatabase.getDatabase(application).userDao())
         preferencesManager = PreferencesManager(application)
-        val userId: Int = preferencesManager.getUserId()
-        viewModelScope.launch(Dispatchers.IO) {
-            delay(1000)
-            val user = repository.getUserById(id = userId)
-            _user.value = user
+        jwtService = JwtService()
+        token = preferencesManager.getToken()
+        if (token != null) {
+            val userId = jwtService.verifyToken(token)
+            if (userId != null) {
+                viewModelScope.launch(Dispatchers.IO) {
+                    delay(1000)
+                    val user = repository.getUserById(id = userId.toInt())
+                    _user.value = user
+                }
+            } else {
+                _jwtState.value = JwtState.JwtNull
+            }
+        } else {
+            _jwtState.value = JwtState.JwtNull
         }
     }
 
     fun updatePasswordAndUsername(username: String, password: String, confirmPassword: String) {
+        if (token == null) {
+            _jwtState.value = JwtState.JwtNull
+        } else{
+
+            if (jwtService.verifyToken(token) == null) {
+                _jwtState.value = JwtState.JwtNull
+            }
+        }
+
         val usernameValidated = Validator.usernameValidate(username)
         val passwordValidated = Validator.passwordValidate(password, confirmPassword)
         _fieldsState.value = FieldsState(passwordValidated, usernameValidated)
@@ -48,7 +76,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             updatePassword(password)
             updateUsername(username)
             _profileState.value = ProfileState.DataUpdateSuccess
-        } else if (usernameValidated == InputResult.Success && passwordValidated == InputResult.FieldEmpty){
+        } else if (usernameValidated == InputResult.Success && passwordValidated == InputResult.FieldEmpty) {
             updateUsername(username)
             _profileState.value = ProfileState.DataUpdateSuccess
         } else {
@@ -75,6 +103,11 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 repository.update(user)
             }
         }
+    }
+
+    fun logout() {
+        preferencesManager.removeToken()
+        _user.value = null
     }
 }
 

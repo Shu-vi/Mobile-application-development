@@ -7,21 +7,23 @@ class PreferencesManager(context: Context) {
     //Управление сессиями
     //Разделение пользователей по ролям - админ и обычный юзер
     //Панель администратора
-    fun saveUserId(userId: Int) {
+    fun saveToken(token: String) {
         with(sharedPref.edit()) {
-            putInt("user_id", userId)
+            putString("token", token)
             apply()
         }
     }
 
-    fun getUserId(): Int {
-        return sharedPref.getInt("user_id", -1)
+    fun getToken(): String? {
+        return sharedPref.getString("token", null)
     }
 
-    fun removeUserId() {
+    fun removeToken() {
         with(sharedPref.edit()) {
-            remove("user_id")
+            remove("token")
             apply()
         }
     }
+
+
 }

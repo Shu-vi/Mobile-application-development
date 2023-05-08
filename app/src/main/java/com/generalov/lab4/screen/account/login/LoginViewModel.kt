@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.generalov.lab4.database.AppDatabase
 import com.generalov.lab4.database.repo.UserRepository
 import com.generalov.lab4.datastore.PreferencesManager
-import com.generalov.lab4.screen.account.registration.RegistrationState
 import com.generalov.lab4.types.InputResult
+import com.generalov.lab4.usecases.JwtService
 import com.generalov.lab4.usecases.Validator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: UserRepository
     private val preferences: PreferencesManager
+    private val jwtService: JwtService
 
     private val _fieldState =
         MutableStateFlow(FieldsState(InputResult.Initial, InputResult.Initial))
@@ -29,6 +30,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         val userDao = AppDatabase.getDatabase(application).userDao()
         repository = UserRepository(userDao)
         preferences = PreferencesManager(application)
+        jwtService = JwtService()
     }
 
     fun login(phoneNumber: String, password: String) {
@@ -40,9 +42,8 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope.launch(Dispatchers.IO) {
                 val user = repository.getUserByPhone(phoneNumber)
                 if (user != null && user.password == password) {
-                    user.id?.let {
-                        preferences.saveUserId(it)
-                    }
+                    val token = jwtService.generateToken(user.id!!)
+                    preferences.saveToken(token)
                     _loginState.value = LoginState.LoginSuccess
                 } else {
                     _loginState.value = LoginState.LoginIncorrect

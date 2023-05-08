@@ -1,37 +1,35 @@
 package com.generalov.lab4.usecases
 
+
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.auth0.jwt.exceptions.JWTVerificationException
-import com.generalov.lab4.database.entity.User
 import java.util.*
 
-class AuthService {
-    private val sercretKey = "secret"
+class JwtService {
 
-    // Генерация токена на клиентской стороне
-    private fun generateToken(user: User): String {
-        val algorithm = Algorithm.HMAC256(sercretKey)
-        val header = mapOf("alg" to "HS256")
-        val expiresAt = Date(System.currentTimeMillis() + 60_000) // Токен действителен 1 минуту
-
-        return JWT.create()
-            .withHeader(header)
-            .withClaim("id", user.id)
-            .withClaim("isAdmin", user.isAdmin)
-            .withExpiresAt(expiresAt)
-            .sign(algorithm)
+    // Проверяем токен и возвращаем id пользователя, если все прошло успешно
+    fun verifyToken(token: String): String? {
+        val algorithm = Algorithm.HMAC256("secret")
+        val verifier = JWT.require(algorithm)
+            .withIssuer("myApp")
+            .build()
+        return try {
+            val decodedToken = verifier.verify(token)
+            decodedToken.subject
+        } catch (e: Exception) {
+            null
+        }
     }
 
-    // Проверка токена на серверной стороне
-    fun verifyToken(token: String): Boolean {
-        val algorithm = Algorithm.HMAC256(sercretKey)
-        return try {
-            val verifier = JWT.require(algorithm).build()
-            verifier.verify(token)
-            true
-        } catch (exception: JWTVerificationException) {
-            false
-        }
+    // Генерируем токен
+    fun generateToken(userId: Int): String {
+        val algorithm = Algorithm.HMAC256("secret")
+        val nowMillis = System.currentTimeMillis()
+        val expiresAt = Date(nowMillis + 60_000) // 1 час
+        return JWT.create()
+            .withIssuer("myApp")
+            .withExpiresAt(expiresAt)
+            .withSubject(userId.toString())
+            .sign(algorithm)
     }
 }

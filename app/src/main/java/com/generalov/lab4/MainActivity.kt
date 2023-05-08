@@ -33,8 +33,8 @@ class MainActivity : ComponentActivity() {
 
 
     private fun startDestination(viewModel: MainActivityViewModel): String {
-        val id: Int = viewModel.getUserId()
-        return if (id > 0) {
+        val id: Int? = viewModel.getUserId()
+        return if (id != null) {
             Screen.Home.route
         } else {
             Screen.Account.route

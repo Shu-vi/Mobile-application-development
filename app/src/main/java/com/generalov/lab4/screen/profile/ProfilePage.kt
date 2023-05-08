@@ -12,12 +12,24 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.generalov.lab4.components.TextFieldWithError
 import com.generalov.lab4.screen.Screen
+import com.generalov.lab4.screen.home.HomeViewModel
+import com.generalov.lab4.screen.home.logout
 import com.generalov.lab4.types.InputResult
+import com.generalov.lab4.types.JwtState
 
 @Composable
 fun ProfilePage(navController: NavHostController) {
     val viewModel: ProfileViewModel = viewModel()
     val user by viewModel.user.collectAsState()
+    val jwtState by viewModel.jwtState.collectAsState()
+    when(jwtState){
+        JwtState.JwtNull -> {
+            LaunchedEffect(Unit) {
+                logout(viewModel, navController)
+            }
+        }
+        else -> {}
+    }
 
     if (user != null) {
         var username by remember { mutableStateOf(user!!.username) }
@@ -151,4 +163,9 @@ fun ProfilePage(navController: NavHostController) {
             CircularProgressIndicator()
         }
     }
+}
+
+fun logout(viewModel: ProfileViewModel, navController: NavHostController){
+    viewModel.logout()
+    navController.navigate(Screen.Account.route)
 }

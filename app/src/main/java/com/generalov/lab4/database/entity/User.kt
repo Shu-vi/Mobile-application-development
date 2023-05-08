@@ -7,7 +7,8 @@ data class User(
     @ColumnInfo(name = "id") @PrimaryKey(autoGenerate = true) val id: Int?,
     @ColumnInfo(name = "username") var username: String,
     @ColumnInfo(name = "password") var password: String,
-    @ColumnInfo(name = "phone") var phone: String
+    @ColumnInfo(name = "phone") var phone: String,
+    @ColumnInfo(name = "isAdmin") var isAdmin: Boolean
 )
 
 
