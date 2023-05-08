@@ -20,6 +20,9 @@ interface UserDao {
     @Query(value = "SELECT * FROM users WHERE id = :id LIMIT 1")
     suspend fun getUserById(id: Int): User?
 
+    @Query(value = "SELECT * FROM users WHERE id != :id")
+    suspend fun getUsers(id: Int): List<User>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertUser(user: User)
 
