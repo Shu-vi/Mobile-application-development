@@ -22,10 +22,27 @@ fun ProfilePage(navController: NavHostController) {
     val viewModel: ProfileViewModel = viewModel()
     val user by viewModel.user.collectAsState()
     val jwtState by viewModel.jwtState.collectAsState()
-    when(jwtState){
+
+    var showDialog by remember { mutableStateOf(false) }
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Сессия истекла") },
+            text = { Text("Пожалуйста, войдите снова") },
+            confirmButton = {
+                Button(onClick = {
+                    showDialog = false
+                    logout(viewModel, navController)
+                }) {
+                    Text("ОК")
+                }
+            }
+        )
+    }
+    when (jwtState) {
         JwtState.JwtNull -> {
             LaunchedEffect(Unit) {
-                logout(viewModel, navController)
+                showDialog = true
             }
         }
         else -> {}

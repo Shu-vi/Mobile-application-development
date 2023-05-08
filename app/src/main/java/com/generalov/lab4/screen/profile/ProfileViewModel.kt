@@ -60,29 +60,21 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun updatePasswordAndUsername(username: String, password: String, confirmPassword: String) {
-        if (token == null) {
-            _jwtState.value = JwtState.JwtNull
-        } else{
-
-            if (jwtService.verifyToken(token) == null) {
-                _jwtState.value = JwtState.JwtNull
+        if (checkActualityToken()){
+            val usernameValidated = Validator.usernameValidate(username)
+            val passwordValidated = Validator.passwordValidate(password, confirmPassword)
+            _fieldsState.value = FieldsState(passwordValidated, usernameValidated)
+            if (usernameValidated == InputResult.Success && passwordValidated == InputResult.Success) {
+                updatePassword(password)
+                updateUsername(username)
+                _profileState.value = ProfileState.DataUpdateSuccess
+            } else if (usernameValidated == InputResult.Success && passwordValidated == InputResult.FieldEmpty) {
+                updateUsername(username)
+                _profileState.value = ProfileState.DataUpdateSuccess
+            } else {
+                _profileState.value = ProfileState.Initial
             }
         }
-
-        val usernameValidated = Validator.usernameValidate(username)
-        val passwordValidated = Validator.passwordValidate(password, confirmPassword)
-        _fieldsState.value = FieldsState(passwordValidated, usernameValidated)
-        if (usernameValidated == InputResult.Success && passwordValidated == InputResult.Success) {
-            updatePassword(password)
-            updateUsername(username)
-            _profileState.value = ProfileState.DataUpdateSuccess
-        } else if (usernameValidated == InputResult.Success && passwordValidated == InputResult.FieldEmpty) {
-            updateUsername(username)
-            _profileState.value = ProfileState.DataUpdateSuccess
-        } else {
-            _profileState.value = ProfileState.Initial
-        }
-
     }
 
     private fun updateUsername(username: String) {
@@ -102,6 +94,22 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 user.password = password
                 repository.update(user)
             }
+        }
+    }
+
+    private fun checkActualityToken(): Boolean{
+        val token = preferencesManager.getToken()
+        if (token != null) {
+            val userId = jwtService.verifyToken(token)
+            if (userId != null) {
+                return true
+            } else {
+                _jwtState.value = JwtState.JwtNull
+                return false
+            }
+        } else {
+            _jwtState.value = JwtState.JwtNull
+            return false
         }
     }
 

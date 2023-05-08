@@ -1,15 +1,12 @@
 package com.generalov.lab4.screen.home
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,10 +22,26 @@ fun HomePage(navController: NavHostController) {
     val user by viewModel.user.collectAsState()
     val jwtState by viewModel.jwtState.collectAsState()
 
+    var showDialog by remember { mutableStateOf(false) }
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Сессия истекла") },
+            text = { Text("Пожалуйста, войдите снова") },
+            confirmButton = {
+                Button(onClick = {
+                    showDialog = false
+                    logout(viewModel, navController)
+                }) {
+                    Text("ОК")
+                }
+            }
+        )
+    }
     when (jwtState) {
         JwtState.JwtNull -> {
             LaunchedEffect(Unit) {
-                logout(viewModel, navController)
+                showDialog = true
             }
         }
         else -> {}
