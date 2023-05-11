@@ -42,8 +42,11 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope.launch(Dispatchers.IO) {
                 val user = repository.getUserByPhone(phoneNumber)
                 if (user != null && user.password == password) {
-                    val token = jwtService.generateToken(user.id!!)
-                    preferences.saveToken(token)
+                    val tokens = jwtService.generateTokens(user.id!!)
+                    val accessToken = tokens.first
+                    val refreshToken = tokens.second
+                    preferences.saveAccessToken(accessToken)
+                    preferences.saveRefreshToken(refreshToken)
                     _loginState.value = LoginState.LoginSuccess
                 } else {
                     _loginState.value = LoginState.LoginIncorrect

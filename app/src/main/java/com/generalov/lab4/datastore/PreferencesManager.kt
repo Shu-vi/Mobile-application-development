@@ -4,23 +4,39 @@ import android.content.Context
 
 class PreferencesManager(context: Context) {
     private val sharedPref = context.getSharedPreferences("my_preferences", Context.MODE_PRIVATE)
-    //Управление сессиями
-    //Разделение пользователей по ролям - админ и обычный юзер
-    //Панель администратора
-    fun saveToken(token: String) {
+
+    fun saveRefreshToken(token: String) {
         with(sharedPref.edit()) {
-            putString("token", token)
+            putString("refreshToken", token)
             apply()
         }
     }
 
-    fun getToken(): String? {
-        return sharedPref.getString("token", null)
+    fun saveAccessToken(token: String) {
+        with(sharedPref.edit()) {
+            putString("accessToken", token)
+            apply()
+        }
     }
 
-    fun removeToken() {
+    fun getRefreshToken(): String? {
+        return sharedPref.getString("refreshToken", null)
+    }
+
+    fun getAccessToken(): String? {
+        return sharedPref.getString("accessToken", null)
+    }
+
+    fun removeAccessToken() {
         with(sharedPref.edit()) {
-            remove("token")
+            remove("accessToken")
+            apply()
+        }
+    }
+
+    fun removeRefreshToken() {
+        with(sharedPref.edit()) {
+            remove("refreshToken")
             apply()
         }
     }

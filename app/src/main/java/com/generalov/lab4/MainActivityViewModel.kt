@@ -15,11 +15,13 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
     }
 
     fun getUserId(): Int? {
-        val token = preferencesManager.getToken()
-        var userId: Int? = null
-        if (token != null) {
-            userId = jwtService.verifyToken(token)?.toInt()
-        }
-        return userId
+        val accessToken = preferencesManager.getAccessToken()
+        val refreshToken = preferencesManager.getRefreshToken()
+        val userId: String? = jwtService.checkTokens(
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+            preferencesManager = preferencesManager
+        )
+        return userId?.toInt()
     }
 }

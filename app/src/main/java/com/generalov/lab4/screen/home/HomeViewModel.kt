@@ -34,22 +34,23 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         repository = UserRepository(AppDatabase.getDatabase(application).userDao())
         preferencesManager = PreferencesManager(application)
         jwtService = JwtService()
-        val token = preferencesManager.getToken()
-        if (token != null) {
-            val userId = jwtService.verifyToken(token)
-            if (userId != null) {
-                viewModelScope.launch(Dispatchers.IO) {
-                    delay(1000)
-                    val user = repository.getUserById(id = userId.toInt())
-                    _user.value = user
-                    if (user != null) {
-                        if (user.isAdmin){
-                            _users.value = repository.getUsers(userId.toInt()) as MutableList<User>
-                        }
+        val accessToken = preferencesManager.getAccessToken()
+        val refreshToken = preferencesManager.getRefreshToken()
+        val userId: String? = jwtService.checkTokens(
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+            preferencesManager = preferencesManager
+        )
+        if (userId != null) {
+            viewModelScope.launch(Dispatchers.IO) {
+                delay(1000)
+                val user = userId.let { repository.getUserById(id = it.toInt()) }
+                _user.value = user
+                if (user != null) {
+                    if (user.isAdmin) {
+                        _users.value = repository.getUsers(userId.toInt()) as MutableList<User>
                     }
                 }
-            } else {
-                _jwtState.value = JwtState.JwtNull
             }
         } else {
             _jwtState.value = JwtState.JwtNull
@@ -57,33 +58,27 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun roleChange(user: User) {
-        if (checkActualityToken()){
+        val accessToken = preferencesManager.getAccessToken()
+        val refreshToken = preferencesManager.getRefreshToken()
+        val userId: String? = jwtService.checkTokens(
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+            preferencesManager = preferencesManager
+        )
+        if (userId != null){
             viewModelScope.launch(Dispatchers.IO) {
                 user.isAdmin = !user.isAdmin
                 repository.update(user)
             }
-        }
-    }
-
-    private fun checkActualityToken(): Boolean{
-        val token = preferencesManager.getToken()
-        if (token != null) {
-            val userId = jwtService.verifyToken(token)
-            if (userId != null) {
-                return true
-            } else {
-                _jwtState.value = JwtState.JwtNull
-                return false
-            }
         } else {
             _jwtState.value = JwtState.JwtNull
-            return false
         }
+
     }
 
-
     fun logout() {
-        preferencesManager.removeToken()
+        preferencesManager.removeAccessToken()
+        preferencesManager.removeRefreshToken()
         _user.value = null
     }
 }

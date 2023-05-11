@@ -36,23 +36,22 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     private val jwtService: JwtService
 
-    private val token: String?
-
     init {
         repository = UserRepository(AppDatabase.getDatabase(application).userDao())
         preferencesManager = PreferencesManager(application)
         jwtService = JwtService()
-        token = preferencesManager.getToken()
-        if (token != null) {
-            val userId = jwtService.verifyToken(token)
-            if (userId != null) {
-                viewModelScope.launch(Dispatchers.IO) {
-                    delay(1000)
-                    val user = repository.getUserById(id = userId.toInt())
-                    _user.value = user
-                }
-            } else {
-                _jwtState.value = JwtState.JwtNull
+        val accessToken = preferencesManager.getAccessToken()
+        val refreshToken = preferencesManager.getRefreshToken()
+        val userId: String? = jwtService.checkTokens(
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+            preferencesManager = preferencesManager
+        )
+        if (userId != null) {
+            viewModelScope.launch(Dispatchers.IO) {
+                delay(1000)
+                val user = repository.getUserById(id = userId.toInt())
+                _user.value = user
             }
         } else {
             _jwtState.value = JwtState.JwtNull
@@ -60,7 +59,14 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun updatePasswordAndUsername(username: String, password: String, confirmPassword: String) {
-        if (checkActualityToken()){
+        val accessToken = preferencesManager.getAccessToken()
+        val refreshToken = preferencesManager.getRefreshToken()
+        val userId: String? = jwtService.checkTokens(
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+            preferencesManager = preferencesManager
+        )
+        if (userId != null) {
             val usernameValidated = Validator.usernameValidate(username)
             val passwordValidated = Validator.passwordValidate(password, confirmPassword)
             _fieldsState.value = FieldsState(passwordValidated, usernameValidated)
@@ -74,6 +80,8 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             } else {
                 _profileState.value = ProfileState.Initial
             }
+        } else {
+            _jwtState.value = JwtState.JwtNull
         }
     }
 
@@ -97,24 +105,9 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    private fun checkActualityToken(): Boolean{
-        val token = preferencesManager.getToken()
-        if (token != null) {
-            val userId = jwtService.verifyToken(token)
-            if (userId != null) {
-                return true
-            } else {
-                _jwtState.value = JwtState.JwtNull
-                return false
-            }
-        } else {
-            _jwtState.value = JwtState.JwtNull
-            return false
-        }
-    }
-
     fun logout() {
-        preferencesManager.removeToken()
+        preferencesManager.removeAccessToken()
+        preferencesManager.removeRefreshToken()
         _user.value = null
     }
 }
