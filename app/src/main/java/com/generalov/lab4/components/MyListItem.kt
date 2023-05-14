@@ -3,6 +3,7 @@ package com.generalov.lab4.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -11,12 +12,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.room.util.appendPlaceholders
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.generalov.lab4.types.WeatherData
 import com.generalov.lab4.ui.theme.Teal200
 
 @Composable
-fun MyListItem(weather: WeatherData){
+fun MyListItem(weather: WeatherData) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -48,7 +51,8 @@ fun MyListItem(weather: WeatherData){
                 color = Color.White,
                 style = TextStyle(fontSize = 25.sp)
             )
-            AsyncImage(
+            SubcomposeAsyncImage(
+                loading = {CircularProgressIndicator()},
                 model = "https:${weather.icon}",
                 contentDescription = "im5",
                 modifier = Modifier

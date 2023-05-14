@@ -1,5 +1,20 @@
 package com.generalov.lab4.components.weather
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
+import android.location.LocationRequest
+import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -9,22 +24,96 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.generalov.lab4.R
+import com.generalov.lab4.components.DialogSearch
 import com.generalov.lab4.components.MyListItem
 import com.generalov.lab4.ui.theme.Purple200
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 
 
 @Composable
+@SuppressLint("MissingPermission")
 fun Weather() {
     val viewModel: WeatherViewModel = viewModel()
+    val dialogState = remember {
+        mutableStateOf(false)
+    }
+
+    val context = LocalContext.current
+    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    var location by remember { mutableStateOf<Location?>(null) }
+
+    val locationListener = object : LocationListener {
+        override fun onLocationChanged(newLocation: Location) {
+            location = newLocation
+            locationManager.removeUpdates(this)
+        }
+
+        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+    }
+
+    val requestPermissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                locationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER,
+                    0L,
+                    0f,
+                    locationListener
+                )
+            }
+        }
+
+
+
+    LaunchedEffect(location) {
+        if (location == null) {
+            if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                locationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER,
+                    0L,
+                    0f,
+                    locationListener
+                )
+            } else {
+                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+        }
+    }
 
     val currentDay by viewModel.weatherData.observeAsState()
+
+    if (dialogState.value) {
+        DialogSearch(dialogState, onSubmit = {
+            viewModel.updateWeather(it)
+        })
+    }
+    if (location == null) {
+        if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            if (location == null) {
+                // Запускаем лаунчер только при изменении состояния location
+                LaunchedEffect(location) {
+                    requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                }
+            }
+        } else {
+            // Запускаем лаунчер только при изменении состояния location
+            LaunchedEffect(location) {
+                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+        }
+    }
     if (currentDay != null) {
         Column(
             modifier = Modifier
@@ -32,9 +121,7 @@ fun Weather() {
                 .padding(5.dp)
         ) {
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                backgroundColor = Purple200,
-                elevation = 0.dp
+                modifier = Modifier.fillMaxWidth(), backgroundColor = Purple200, elevation = 0.dp
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -45,20 +132,16 @@ fun Weather() {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = currentDay!!.time,
-                            modifier = Modifier.padding(
-                                top = 8.dp,
-                                start = 8.dp
-                            ),
-                            style = TextStyle(fontSize = 15.sp),
-                            color = Color.White
+                            text = currentDay!!.time, modifier = Modifier.padding(
+                                top = 8.dp, start = 8.dp
+                            ), style = TextStyle(fontSize = 15.sp), color = Color.White
                         )
-                        AsyncImage(
+                        SubcomposeAsyncImage(
+                            loading = { CircularProgressIndicator() },
                             model = "https:${currentDay!!.icon}",
                             contentDescription = "im2",
                             modifier = Modifier
                                 .padding(
-                                    top = 8.dp,
                                     end = 8.dp
                                 )
                                 .size(35.dp)
@@ -83,11 +166,9 @@ fun Weather() {
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        IconButton(
-                            onClick = {
-
-                            }
-                        ) {
+                        IconButton(onClick = {
+                            dialogState.value = true
+                        }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_search),
                                 contentDescription = "im3",
@@ -99,11 +180,14 @@ fun Weather() {
                             style = TextStyle(fontSize = 16.sp),
                             color = Color.White
                         )
-                        IconButton(
-                            onClick = {
-
+                        IconButton(onClick = {
+                            if (location != null) {
+                                println("net")
+                                viewModel.updateWeather("${location!!.latitude},${location!!.longitude}")
+                            } else{
+                                println("da")
                             }
-                        ) {
+                        }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_refresh),
                                 contentDescription = "im4",
@@ -113,7 +197,6 @@ fun Weather() {
                     }
                 }
             }
-
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -129,5 +212,4 @@ fun Weather() {
             CircularProgressIndicator()
         }
     }
-
 }

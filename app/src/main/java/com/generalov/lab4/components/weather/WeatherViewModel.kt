@@ -9,6 +9,8 @@ import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.generalov.lab4.datastore.PreferencesManager
 import com.generalov.lab4.types.WeatherData
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -19,14 +21,17 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
     private val apiKey = "62179926b8674e4399e82846231405"
 
     private val preferencesManager: PreferencesManager
+    private val fusedLocationClient: FusedLocationProviderClient
 
     init {
         preferencesManager = PreferencesManager(application)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(application)
         val defaultCity: String = preferencesManager.getCity() ?: "Moscow"
         updateWeather(defaultCity)
     }
 
     fun updateWeather(city: String) {
+        preferencesManager.saveCity(city)
         val url = "https://api.weatherapi.com/v1/forecast.json?key=$apiKey" +
                 "&q=$city" +
                 "&days=2" +
@@ -44,6 +49,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         )
         queue.add(sRequest)
     }
+
 
     private fun updateWeatherData(response: String) {
         val jsonObject = JSONObject(response)
@@ -64,13 +70,13 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
 
         val hoursList = mutableListOf<JSONObject>()
         for (i in 0 until hour.length()) {
-            val condition = hour.getJSONObject(i).getJSONObject("condition")
-            val icon = condition.getString("icon")
-            val text = condition.getString("text")
+            val conditionLocal = hour.getJSONObject(i).getJSONObject("condition")
+            val iconLocal = conditionLocal.getString("icon")
+            val text = conditionLocal.getString("text")
             val hourJson = JSONObject()
             hourJson.put("time", hour.getJSONObject(i).getString("time").substring(11..15))
             hourJson.put("temp", hour.getJSONObject(i).getString("temp_c"))
-            hourJson.put("icon", icon)
+            hourJson.put("icon", iconLocal)
             hourJson.put("condition", text)
             hoursList.add(hourJson)
         }
