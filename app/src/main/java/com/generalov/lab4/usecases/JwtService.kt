@@ -56,7 +56,7 @@ class JwtService {
     private fun generateRefreshToken(userId: Int): String {
         val algorithm = Algorithm.HMAC256(refreshSecret)
         val nowMillis = System.currentTimeMillis()
-        val expiresAt = Date(nowMillis + 1000 * 60 * 2) // 2 минуты
+        val expiresAt = Date(nowMillis + 1000 * 60 * 60) // 1 час
         return JWT.create()
             .withIssuer(issuer)
             .withExpiresAt(expiresAt)
@@ -67,7 +67,7 @@ class JwtService {
     private fun generateAccessToken(userId: Int): String {
         val algorithm = Algorithm.HMAC256(accessSecret)
         val nowMillis = System.currentTimeMillis()
-        val expiresAt = Date(nowMillis + 1000 * 60) // 1 минута
+        val expiresAt = Date(nowMillis + 1000 * 60) // 2 минуты
         return JWT.create()
             .withIssuer(issuer)
             .withExpiresAt(expiresAt)

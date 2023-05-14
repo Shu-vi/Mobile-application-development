@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.generalov.lab4.components.weather.Weather
 import com.generalov.lab4.screen.Screen
 import com.generalov.lab4.types.JwtState
 
@@ -92,14 +93,7 @@ fun HomePage(navController: NavHostController) {
                         UsersList(viewModel = viewModel)
                     }
                 } else {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(contentPadding)
-                    ) {
-                        Text(text = "Добро пожаловать!")
-                    }
+                    Weather()
                 }
             }
         }
@@ -118,7 +112,8 @@ fun logout(viewModel: HomeViewModel, navController: NavHostController) {
 @Composable
 fun UsersList(viewModel: HomeViewModel) {
     val users by viewModel.users.collectAsState()
-    val checkedStates = remember { mutableStateOf(List(users.size) { index -> users[index].isAdmin }) }
+    val checkedStates =
+        remember { mutableStateOf(List(users.size) { index -> users[index].isAdmin }) }
     LazyColumn {
         itemsIndexed(users) { index, user ->
             Row(
@@ -159,3 +154,4 @@ fun UsersList(viewModel: HomeViewModel) {
         }
     }
 }
+
