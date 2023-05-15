@@ -72,7 +72,7 @@ fun RegistrationPage() {
                 repeatPassword = ""
                 isPasswordCleared = true
             }
-            if (!isPhoneCleared){
+            if (!isPhoneCleared) {
                 phone = "+7"
                 isPhoneCleared = true
             }

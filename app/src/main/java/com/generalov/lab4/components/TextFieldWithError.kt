@@ -21,7 +21,8 @@ fun TextFieldWithError(
     isPassword: Boolean = false
 ) {
     val isError = errorMessage.isNotEmpty()
-    val visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None
+    val visualTransformation =
+        if (isPassword) PasswordVisualTransformation() else VisualTransformation.None
 
     Column {
         TextField(

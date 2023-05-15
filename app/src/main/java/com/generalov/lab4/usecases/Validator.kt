@@ -23,7 +23,7 @@ class Validator {
         ): InputResult {
             return if (password != confirmPassword && confirmPassword != null) {
                 InputResult.FieldDoNotMatch
-            } else if (password.isEmpty()){
+            } else if (password.isEmpty()) {
                 InputResult.FieldEmpty
             } else if (password.length < minLength) {
                 InputResult.FieldShort

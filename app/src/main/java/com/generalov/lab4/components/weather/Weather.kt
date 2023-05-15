@@ -2,18 +2,13 @@ package com.generalov.lab4.components.weather
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.location.LocationRequest
 import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,16 +24,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import com.generalov.lab4.R
 import com.generalov.lab4.components.DialogSearch
 import com.generalov.lab4.components.MyListItem
 import com.generalov.lab4.ui.theme.Purple200
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberPermissionState
 
 
 @Composable
@@ -56,7 +47,6 @@ fun Weather() {
     val locationListener = object : LocationListener {
         override fun onLocationChanged(newLocation: Location) {
             location = newLocation
-            locationManager.removeUpdates(this)
         }
 
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
@@ -67,7 +57,7 @@ fun Weather() {
             if (isGranted) {
                 locationManager.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER,
-                    0L,
+                    10000L,
                     0f,
                     locationListener
                 )
@@ -102,13 +92,11 @@ fun Weather() {
         if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
             if (location == null) {
-                // Запускаем лаунчер только при изменении состояния location
                 LaunchedEffect(location) {
                     requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                 }
             }
         } else {
-            // Запускаем лаунчер только при изменении состояния location
             LaunchedEffect(location) {
                 requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             }
@@ -182,10 +170,7 @@ fun Weather() {
                         )
                         IconButton(onClick = {
                             if (location != null) {
-                                println("net")
                                 viewModel.updateWeather("${location!!.latitude},${location!!.longitude}")
-                            } else{
-                                println("da")
                             }
                         }) {
                             Icon(

@@ -12,8 +12,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.room.util.appendPlaceholders
-import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import com.generalov.lab4.types.WeatherData
 import com.generalov.lab4.ui.theme.Teal200
@@ -52,7 +50,7 @@ fun MyListItem(weather: WeatherData) {
                 style = TextStyle(fontSize = 25.sp)
             )
             SubcomposeAsyncImage(
-                loading = {CircularProgressIndicator()},
+                loading = { CircularProgressIndicator() },
                 model = "https:${weather.icon}",
                 contentDescription = "im5",
                 modifier = Modifier

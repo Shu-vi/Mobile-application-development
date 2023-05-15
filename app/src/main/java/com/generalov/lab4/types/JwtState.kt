@@ -1,6 +1,6 @@
 package com.generalov.lab4.types
 
-enum class JwtState{
+enum class JwtState {
     JwtNull,
     Init
 }

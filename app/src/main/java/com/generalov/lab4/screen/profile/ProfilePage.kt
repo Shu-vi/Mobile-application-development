@@ -12,8 +12,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.generalov.lab4.components.TextFieldWithError
 import com.generalov.lab4.screen.Screen
-import com.generalov.lab4.screen.home.HomeViewModel
-import com.generalov.lab4.screen.home.logout
 import com.generalov.lab4.types.InputResult
 import com.generalov.lab4.types.JwtState
 
@@ -182,7 +180,7 @@ fun ProfilePage(navController: NavHostController) {
     }
 }
 
-fun logout(viewModel: ProfileViewModel, navController: NavHostController){
+fun logout(viewModel: ProfileViewModel, navController: NavHostController) {
     viewModel.logout()
     navController.navigate(Screen.Account.route)
 }

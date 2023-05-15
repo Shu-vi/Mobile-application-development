@@ -65,7 +65,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             refreshToken = refreshToken,
             preferencesManager = preferencesManager
         )
-        if (userId != null){
+        if (userId != null) {
             viewModelScope.launch(Dispatchers.IO) {
                 user.isAdmin = !user.isAdmin
                 repository.update(user)
