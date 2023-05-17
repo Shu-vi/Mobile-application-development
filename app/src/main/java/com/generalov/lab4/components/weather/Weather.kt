@@ -104,9 +104,20 @@ fun Weather() {
             }
         }
     }
-    if (requestState == RequestState.Error){
-        Text(text = "Ошибка при запросе к серверу")
-    } else if (currentDay != null) {
+    if (requestState == RequestState.Error) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(text = "Ошибка при запросе к серверу")
+            Button(onClick = {
+                viewModel.updateWeather()
+            }) {
+                Text(text = "Попробовать снова")
+            }
+        }
+    } else if (currentDay != null && requestState == RequestState.Access) {
         Column(
             modifier = Modifier
                 .fillMaxSize()

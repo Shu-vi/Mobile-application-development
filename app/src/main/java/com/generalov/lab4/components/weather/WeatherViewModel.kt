@@ -36,7 +36,8 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         updateWeather(defaultCity)
     }
 
-    fun updateWeather(city: String) {
+    fun updateWeather(city: String = "Moscow") {
+        _requestState.value = RequestState.Initial
         preferencesManager.saveCity(city)
         val url = "https://api.weatherapi.com/v1/forecast.json?key=$apiKey" +
                 "&q=$city" +
