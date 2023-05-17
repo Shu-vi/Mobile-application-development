@@ -36,6 +36,8 @@ import com.generalov.lab4.ui.theme.Purple200
 @SuppressLint("MissingPermission")
 fun Weather() {
     val viewModel: WeatherViewModel = viewModel()
+    val requestState by viewModel.requestState.collectAsState()
+
     val dialogState = remember {
         mutableStateOf(false)
     }
@@ -102,7 +104,9 @@ fun Weather() {
             }
         }
     }
-    if (currentDay != null) {
+    if (requestState == RequestState.Error){
+        Text(text = "Ошибка при запросе к серверу")
+    } else if (currentDay != null) {
         Column(
             modifier = Modifier
                 .fillMaxSize()

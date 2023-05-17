@@ -8,9 +8,12 @@ import androidx.lifecycle.MutableLiveData
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.generalov.lab4.datastore.PreferencesManager
+import com.generalov.lab4.screen.account.registration.RegistrationState
 import com.generalov.lab4.types.WeatherData
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -22,6 +25,9 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
 
     private val preferencesManager: PreferencesManager
     private val fusedLocationClient: FusedLocationProviderClient
+
+    private val _requestState = MutableStateFlow(RequestState.Initial)
+    val requestState: StateFlow<RequestState> = _requestState
 
     init {
         preferencesManager = PreferencesManager(application)
@@ -42,8 +48,10 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
             url,
             { response ->
                 updateWeatherData(response)
+                _requestState.value = RequestState.Access
             },
             {
+                _requestState.value = RequestState.Error
                 Log.d("MyLog", "Ошибка запроса: $it")
             }
         )
@@ -110,4 +118,10 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         }
         return list
     }
+}
+
+enum class RequestState {
+    Access,
+    Error,
+    Initial
 }
